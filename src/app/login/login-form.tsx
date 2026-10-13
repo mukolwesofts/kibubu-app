@@ -142,7 +142,7 @@ export function LoginForm() {
                 disabled={sendPending}
                 className="w-full rounded-xl bg-navy py-3.5 font-semibold text-white disabled:opacity-50"
             >
-                {sendPending ? "Sending…" : "Send login code"}
+                {sendPending ? "Sending…" : "SEND CODE"}
             </button>
         </form>
     );
