@@ -242,7 +242,7 @@ export function QuickAddSheet({
                 type="button"
                 onClick={() => setOpen(true)}
                 aria-label="Add expense"
-                className="fixed bottom-24 right-1/2 z-40 flex h-14 w-14 translate-x-[calc(min(240px,50vw)-7rem)] items-center justify-center rounded-full bg-navy text-3xl font-light text-white shadow-lg"
+                className="fixed bottom-24 right-1/2 z-40 flex h-14 w-14 translate-x-[calc(min(240px,50vw)-5.5rem)] items-center justify-center rounded-full bg-navy text-3xl font-light text-white shadow-lg"
             >
                 +
             </button>
