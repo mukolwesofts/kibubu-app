@@ -18,7 +18,12 @@ import {
 } from "@/lib/otp";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
 
-export type LoginState = { error?: string; sent?: boolean };
+export type LoginState = { error?: string; sent?: boolean; devCode?: string };
+
+const devCode = (code: string) =>
+  !process.env.RESEND_API_KEY && process.env.NODE_ENV !== "production"
+    ? code
+    : undefined;
 
 const emailSchema = z.email().transform((v) => v.toLowerCase());
 const codeSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
@@ -62,7 +67,7 @@ export async function requestOtp(
     await db.delete(otpCodes).where(eq(otpCodes.id, row[0].id));
     return { error: "Couldn't send the email. Try again in a moment." };
   }
-  return { sent: true };
+  return { sent: true, devCode: devCode(code) };
 }
 
 export async function verifyOtp(

@@ -10,6 +10,7 @@ export function LoginForm() {
     const [resendErr, setResendErr] = useState(false);
     const [cooldown, setCooldown] = useState(0);
     const [resendPending, startResend] = useTransition();
+    const [devCode, setDevCode] = useState<string | null>(null);
 
     useEffect(() => {
         if (cooldown <= 0) return;
@@ -24,7 +25,10 @@ export function LoginForm() {
             const res = await requestOtp({}, fd);
             setResendErr(!!res.error);
             setResendMsg(res.error ?? "New code sent — check your inbox");
-            if (res.sent) setCooldown(60);
+            if (res.sent) {
+                setCooldown(60);
+                if (res.devCode) setDevCode(res.devCode);
+            }
         });
 
     const [sendState, sendAction, sendPending] = useActionState(
@@ -33,6 +37,7 @@ export function LoginForm() {
             if (res.sent) {
                 setStep("code");
                 setCooldown(60);
+                if (res.devCode) setDevCode(res.devCode);
             }
             return res;
         },
@@ -45,6 +50,12 @@ export function LoginForm() {
         return (
             <form action={verifyAction} className="space-y-4">
                 <input type="hidden" name="email" value={email} />
+                {devCode && (
+                    <p className="rounded-xl border border-dashed border-muted bg-cream px-4 py-3 text-center text-sm">
+                        Dev mode (no Resend key) — your code is{" "}
+                        <span className="text-lg font-extrabold tracking-[0.3em]">{devCode}</span>
+                    </p>
+                )}
                 <div>
                     <p className="text-sm text-muted">
                         We sent a 6-digit code to <span className="font-semibold text-navy">{email}</span>
