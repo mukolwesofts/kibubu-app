@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import type { BudgetItem, Transaction } from "@/db/schema";
 import { formatKES } from "@/lib/money";
@@ -50,6 +51,14 @@ function Fields({
                     </option>
                 ))}
             </select>
+            <p className="-mt-1 text-xs text-muted">
+                <Link
+                    href="/budget"
+                    className="font-semibold text-navy underline-offset-2 hover:underline"
+                >
+                    Add categories on the Budget tab
+                </Link>
+            </p>
             <input
                 name="note"
                 defaultValue={tx?.note ?? ""}
