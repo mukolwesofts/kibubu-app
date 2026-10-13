@@ -6,11 +6,13 @@ const id = () =>
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID());
 
+// Tenant Based System
 export const households = sqliteTable("households", {
   id: id(),
   name: text("name").notNull(),
 });
 
+// User Management
 export const users = sqliteTable(
   "users",
   {
@@ -42,6 +44,7 @@ export const invites = sqliteTable(
   (t) => [index("invites_email_idx").on(t.email)],
 );
 
+// OTP Management
 export const otpCodes = sqliteTable(
   "otp_codes",
   {
@@ -57,6 +60,7 @@ export const otpCodes = sqliteTable(
   (t) => [index("otp_email_idx").on(t.email)],
 );
 
+// Period Management
 export const periods = sqliteTable(
   "periods",
   {
@@ -74,6 +78,7 @@ export const periods = sqliteTable(
   (t) => [index("periods_household_idx").on(t.householdId)],
 );
 
+// Income Management
 export const income = sqliteTable(
   "income",
   {
@@ -91,6 +96,7 @@ export const income = sqliteTable(
   (t) => [index("income_period_idx").on(t.periodId)],
 );
 
+// Budget Items Management
 export const budgetItems = sqliteTable(
   "budget_items",
   {
@@ -105,6 +111,7 @@ export const budgetItems = sqliteTable(
   (t) => [index("budget_items_period_idx").on(t.periodId)],
 );
 
+// Transaction Management
 export const transactions = sqliteTable(
   "transactions",
   {
@@ -129,6 +136,7 @@ export const transactions = sqliteTable(
   ],
 );
 
+// Savings Goals Management
 export const savingsGoals = sqliteTable(
   "savings_goals",
   {
@@ -145,6 +153,7 @@ export const savingsGoals = sqliteTable(
   (t) => [index("savings_goals_household_idx").on(t.householdId)],
 );
 
+// Savings Entries Management
 export const savingsEntries = sqliteTable(
   "savings_entries",
   {
@@ -166,6 +175,7 @@ export const savingsEntries = sqliteTable(
   (t) => [index("savings_entries_goal_idx").on(t.goalId)],
 );
 
+// Loans Management
 export const loans = sqliteTable(
   "loans",
   {
@@ -183,6 +193,7 @@ export const loans = sqliteTable(
   (t) => [index("loans_household_idx").on(t.householdId)],
 );
 
+// Loan Payments Management
 export const loanPayments = sqliteTable(
   "loan_payments",
   {
@@ -203,6 +214,7 @@ export const loanPayments = sqliteTable(
   (t) => [index("loan_payments_loan_idx").on(t.loanId)],
 );
 
+// Type Exports
 export type User = typeof users.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Invite = typeof invites.$inferSelect;
