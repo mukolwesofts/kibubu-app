@@ -6,22 +6,18 @@ import { todayNairobi } from "@/lib/dates";
 import { formatKES } from "@/lib/money";
 import { getActivePeriod } from "@/lib/periods";
 import { NewPeriodForm } from "@/components/new-period-form";
-import {
-    AddBudgetItemForm,
-    AddIncomeForm,
-    BudgetItemRow,
-    IncomeRow,
-} from "./budget-forms";
+import { BudgetItemList, IncomeList } from "./budget-forms";
 
 export default async function BudgetPage() {
     const user = await requireUser();
     const period = await getActivePeriod(user.householdId);
+    const today = todayNairobi();
 
     if (!period) {
         return (
             <div className="space-y-6">
                 <h1 className="text-2xl font-extrabold">Budget</h1>
-                <NewPeriodForm defaultDate={todayNairobi()} first />
+                <NewPeriodForm defaultDate={today} first />
             </div>
         );
     }
@@ -70,37 +66,11 @@ export default async function BudgetPage() {
             </section>
 
             <section>
-                <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">
-                    Income
-                </h2>
-                <div className="space-y-2 rounded-2xl border border-mist bg-white p-4">
-                    {incomeRows.length === 0 && (
-                        <p className="py-1 text-sm text-muted">No income yet.</p>
-                    )}
-                    {incomeRows.map((row) => (
-                        <IncomeRow key={row.id} entry={row} />
-                    ))}
-                    <div className="border-t border-mist pt-3">
-                        <AddIncomeForm periodId={period.id} today={todayNairobi()} />
-                    </div>
-                </div>
+                <IncomeList entries={incomeRows} periodId={period.id} today={today} />
             </section>
 
             <section>
-                <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-muted">
-                    Budget lines
-                </h2>
-                <div className="space-y-2 rounded-2xl border border-mist bg-white p-4">
-                    {itemRows.length === 0 && (
-                        <p className="py-1 text-sm text-muted">No categories yet.</p>
-                    )}
-                    {itemRows.map((item) => (
-                        <BudgetItemRow key={item.id} item={item} />
-                    ))}
-                    <div className="border-t border-mist pt-3">
-                        <AddBudgetItemForm periodId={period.id} />
-                    </div>
-                </div>
+                <BudgetItemList items={itemRows} periodId={period.id} />
             </section>
         </div>
     );

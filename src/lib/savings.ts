@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { savingsEntries } from "@/db/schema";
 
@@ -7,10 +7,18 @@ export async function goalBalance(goalId: string): Promise<number> {
   const entries = await db.query.savingsEntries.findMany({
     where: eq(savingsEntries.goalId, goalId),
   });
-  return entries.reduce(
-    (s, e) => s + (e.type === "deposit" ? e.amount : -e.amount),
-    0,
-  );
+  return entriesBalance(entries);
+}
+
+/** Running balance counting only entries on or before `date` (YYYY-MM-DD). */
+export async function goalBalanceAt(
+  goalId: string,
+  date: string,
+): Promise<number> {
+  const entries = await db.query.savingsEntries.findMany({
+    where: and(eq(savingsEntries.goalId, goalId), lte(savingsEntries.date, date)),
+  });
+  return entriesBalance(entries);
 }
 
 export function entriesBalance(

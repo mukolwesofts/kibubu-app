@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { savingsEntries, savingsGoals } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatKES } from "@/lib/money";
-import { AddGoalForm } from "./savings-forms";
+import { NewGoalButton } from "./savings-forms";
 
 export default async function SavingsPage() {
     const user = await requireUser();
@@ -68,12 +68,7 @@ export default async function SavingsPage() {
                 })}
             </div>
 
-            <section className="rounded-2xl border border-mist bg-white p-4">
-                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">
-                    New goal
-                </h2>
-                <AddGoalForm />
-            </section>
+            <NewGoalButton />
         </div>
     );
 }

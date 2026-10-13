@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { loanPayments, loans } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { formatKES } from "@/lib/money";
-import { AddLoanForm } from "./loan-forms";
+import { NewLoanButton } from "./loan-forms";
 
 export default async function LoansPage() {
     const user = await requireUser();
@@ -62,12 +62,7 @@ export default async function LoansPage() {
                 })}
             </div>
 
-            <section className="rounded-2xl border border-mist bg-white p-4">
-                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-muted">
-                    New loan
-                </h2>
-                <AddLoanForm />
-            </section>
+            <NewLoanButton />
         </div>
     );
 }

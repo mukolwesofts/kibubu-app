@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { savingsEntries, savingsGoals } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { goalBalance } from "@/lib/savings";
+import { goalBalanceAt } from "@/lib/savings";
 
 export type SavingsState = { error?: string };
 
@@ -83,9 +83,10 @@ export async function addEntry(
   if (!goal) return { error: "Goal not found" };
 
   if (parsed.data.type === "withdrawal") {
-    const balance = await goalBalance(goal.id);
+    // Balance as of the entry's date — can't withdraw money that isn't there yet.
+    const balance = await goalBalanceAt(goal.id, parsed.data.date);
     if (parsed.data.amount > balance) {
-      return { error: "Can't withdraw more than the balance" };
+      return { error: "Can't withdraw more than the balance on that date" };
     }
   }
 

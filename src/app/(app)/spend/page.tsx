@@ -6,7 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { formatDate, todayNairobi } from "@/lib/dates";
 import { getActivePeriod } from "@/lib/periods";
 import { NewPeriodForm } from "@/components/new-period-form";
-import { AddTransactionForm, TransactionRow } from "./spend-ui";
+import { AddTransactionButton, TransactionRow } from "./spend-ui";
 
 export default async function SpendPage({
     searchParams,
@@ -77,9 +77,7 @@ export default async function SpendPage({
                 <p className="text-sm text-muted">{period.label}</p>
             </div>
 
-            <section className="rounded-2xl border border-mist bg-white p-4">
-                <AddTransactionForm periodId={period.id} items={items} today={today} />
-            </section>
+            <AddTransactionButton periodId={period.id} items={items} today={today} />
 
             {(filterItems.length > 0 || hasUncategorized) && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
