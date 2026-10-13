@@ -84,9 +84,7 @@ async function sendOrLog(
 
 export async function sendOtpEmail(email: string, code: string) {
   const html = layout(
-    `<tr><td align="center" style="padding-bottom:24px;">
-        <h1 style="margin:0;font-size:28px;font-weight:800;color:${NAVY};letter-spacing:-0.02em;">${code} is your verification code</h1>
-      </td></tr>` +
+    `` +
       card(`
         <p style="margin:0 0 12px;font-size:14px;color:${MUTED};">Hi,</p>
         <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${NAVY};">Enter this one-time code to sign in to Kibubu:</p>

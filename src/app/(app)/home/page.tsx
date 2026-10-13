@@ -1,5 +1,4 @@
 import { asc, eq } from "drizzle-orm";
-import Link from "next/link";
 import { db } from "@/db";
 import { budgetItems, income, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
@@ -12,6 +11,7 @@ import {
     type PeriodStatus,
 } from "@/lib/stats";
 import { NewPeriodButton, NewPeriodForm } from "@/components/new-period-form";
+import { PeriodSelect } from "@/components/period-select";
 import { QuickAddSheet } from "../spend/spend-ui";
 
 const pillStyles: Record<PeriodStatus, string> = {
@@ -71,20 +71,11 @@ export default async function HomePage({
     return (
         <div className="space-y-5">
             {/* Period switcher */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-                {allPeriods.map((p) => (
-                    <Link
-                        key={p.id}
-                        href={`/home?period=${p.id}`}
-                        scroll={false}
-                        className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold ${p.id === period.id
-                            ? "border-navy bg-navy text-white"
-                            : "border-mist bg-white text-muted"
-                            }`}
-                    >
-                        {p.label}
-                    </Link>
-                ))}
+            <div className="flex items-center gap-2">
+                <PeriodSelect
+                    periods={allPeriods.map((p) => ({ id: p.id, label: p.label }))}
+                    currentId={period.id}
+                />
                 <NewPeriodButton
                     defaultDate={today}
                     min={active ? addDays(active.startDate, 1) : undefined}
