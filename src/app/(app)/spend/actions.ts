@@ -6,30 +6,24 @@ import { z } from "zod";
 import { db } from "@/db";
 import { budgetItems, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { todayNairobi } from "@/lib/dates";
 import { requireOpenPeriod } from "@/lib/periods";
+import {
+  amountSchema,
+  entryDateSchema,
+  idSchema,
+  noteSchema,
+} from "@/lib/validation";
 
 export type SpendState = { error?: string };
 
 const txSchema = z.object({
-  amount: z.coerce
-    .number()
-    .int("Whole shillings only")
-    .positive("Amount must be more than 0"),
+  amount: amountSchema,
   budgetItemId: z
-    .string()
+    .union([idSchema, z.literal("")])
     .optional()
-    .transform((v) => (v ? v : null)),
-  note: z
-    .string()
-    .trim()
-    .max(140)
-    .optional()
-    .transform((v) => (v ? v : null)),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
-    .refine((d) => d <= todayNairobi(), "Date can't be in the future"),
+    .transform((v) => (v === "" ? null : (v ?? null))),
+  note: noteSchema,
+  date: entryDateSchema,
 });
 
 /** Confirm a budget item belongs to the given period (or null). */
@@ -63,7 +57,8 @@ export async function addTransaction(
   formData: FormData,
 ): Promise<SpendState> {
   const user = await requireUser();
-  const periodId = z.string().min(1).parse(formData.get("periodId"));
+  const periodId = idSchema.safeParse(formData.get("periodId"));
+  if (!periodId.success) return { error: "Not found" };
   const parsed = txSchema.safeParse({
     amount: formData.get("amount"),
     budgetItemId: formData.get("budgetItemId") || undefined,
@@ -73,15 +68,15 @@ export async function addTransaction(
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   try {
-    await requireOpenPeriod(user.householdId, periodId);
-    await validItem(periodId, parsed.data.budgetItemId);
+    await requireOpenPeriod(user.householdId, periodId.data);
+    await validItem(periodId.data, parsed.data.budgetItemId);
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Not found" };
   }
 
   await db.insert(transactions).values({
     ...parsed.data,
-    periodId,
+    periodId: periodId.data,
     userId: user.id,
   });
   revalidate();
@@ -93,7 +88,8 @@ export async function updateTransaction(
   formData: FormData,
 ): Promise<SpendState> {
   const user = await requireUser();
-  const id = z.string().min(1).parse(formData.get("id"));
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return { error: "Not found" };
   const parsed = txSchema.safeParse({
     amount: formData.get("amount"),
     budgetItemId: formData.get("budgetItemId") || undefined,
@@ -102,7 +98,7 @@ export async function updateTransaction(
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const row = await getOwnedTransaction(user.householdId, id);
+  const row = await getOwnedTransaction(user.householdId, id.data);
   if (!row) return { error: "Not found" };
 
   try {
@@ -114,16 +110,17 @@ export async function updateTransaction(
   await db
     .update(transactions)
     .set(parsed.data)
-    .where(eq(transactions.id, id));
+    .where(eq(transactions.id, id.data));
   revalidate();
   return {};
 }
 
 export async function deleteTransaction(formData: FormData) {
   const user = await requireUser();
-  const id = z.string().min(1).parse(formData.get("id"));
-  const row = await getOwnedTransaction(user.householdId, id);
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return;
+  const row = await getOwnedTransaction(user.householdId, id.data);
   if (!row) return;
-  await db.delete(transactions).where(eq(transactions.id, id));
+  await db.delete(transactions).where(eq(transactions.id, id.data));
   revalidate();
 }

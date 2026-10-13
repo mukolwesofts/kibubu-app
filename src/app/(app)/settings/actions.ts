@@ -9,10 +9,9 @@ import { db } from "@/db";
 import { invites, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { SESSION_COOKIE } from "@/lib/session";
+import { emailSchema, idSchema } from "@/lib/validation";
 
 export type SettingsState = { error?: string; sent?: boolean };
-
-const emailSchema = z.email().transform((v) => v.toLowerCase());
 
 export async function inviteByEmail(
   _prev: SettingsState,
@@ -47,10 +46,13 @@ export async function inviteByEmail(
 
 export async function deleteInvite(formData: FormData) {
   const user = await requireUser();
-  const id = z.string().min(1).parse(formData.get("id"));
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return;
   await db
     .delete(invites)
-    .where(and(eq(invites.id, id), eq(invites.householdId, user.householdId)));
+    .where(
+      and(eq(invites.id, id.data), eq(invites.householdId, user.householdId)),
+    );
   revalidatePath("/settings");
 }
 
@@ -59,12 +61,12 @@ export async function updateName(
   formData: FormData,
 ): Promise<SettingsState> {
   const user = await requireUser();
-  const name = z
-    .string()
-    .trim()
-    .max(60)
-    .parse(formData.get("name") ?? "");
-  await db.update(users).set({ name: name || null }).where(eq(users.id, user.id));
+  const parsed = z.string().trim().max(60).safeParse(formData.get("name") ?? "");
+  if (!parsed.success) return { error: "Name is too long" };
+  await db
+    .update(users)
+    .set({ name: parsed.data || null })
+    .where(eq(users.id, user.id));
   revalidatePath("/settings");
   return { sent: true };
 }

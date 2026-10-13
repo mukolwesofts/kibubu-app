@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 export function Modal({
@@ -14,9 +14,6 @@ export function Modal({
     title: string;
     children: React.ReactNode;
 }) {
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
-
     // Lock body scroll while the sheet is open.
     useEffect(() => {
         if (!open) return;
@@ -26,7 +23,7 @@ export function Modal({
         };
     }, [open]);
 
-    if (!open || !mounted) return null;
+    if (!open || typeof document === "undefined") return null;
 
     // Portal to <body> so the sheet always paints above the bottom nav.
     return createPortal(

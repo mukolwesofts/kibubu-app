@@ -6,19 +6,15 @@ import { z } from "zod";
 import { db } from "@/db";
 import { budgetItems, income, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { todayNairobi } from "@/lib/dates";
 import { requireOpenPeriod } from "@/lib/periods";
+import {
+  amountSchema,
+  entryDateSchema,
+  idSchema,
+  textSchema,
+} from "@/lib/validation";
 
 export type BudgetState = { error?: string };
-
-const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
-  .refine((d) => d <= todayNairobi(), "Date can't be in the future");
-const amountSchema = z.coerce
-  .number()
-  .int("Whole shillings only")
-  .positive("Amount must be more than 0");
 
 async function getOwnedIncome(householdId: string, id: string) {
   const row = await db.query.income.findFirst({ where: eq(income.id, id) });
@@ -49,10 +45,10 @@ export async function addIncome(
   const user = await requireUser();
   const parsed = z
     .object({
-      periodId: z.string().min(1),
-      source: z.string().trim().min(1, "Name the source").max(80),
+      periodId: idSchema,
+      source: textSchema(80, "Name the source"),
       amount: amountSchema,
-      date: dateSchema,
+      date: entryDateSchema,
     })
     .safeParse({
       periodId: formData.get("periodId"),
@@ -81,10 +77,10 @@ export async function updateIncome(
   const user = await requireUser();
   const parsed = z
     .object({
-      id: z.string().min(1),
-      source: z.string().trim().min(1).max(80),
+      id: idSchema,
+      source: textSchema(80, "Name the source"),
       amount: amountSchema,
-      date: dateSchema,
+      date: entryDateSchema,
     })
     .safeParse({
       id: formData.get("id"),
@@ -112,8 +108,9 @@ export async function updateIncome(
 
 export async function deleteIncome(formData: FormData) {
   const user = await requireUser();
-  const id = z.string().min(1).parse(formData.get("id"));
-  const row = await getOwnedIncome(user.householdId, id);
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return;
+  const row = await getOwnedIncome(user.householdId, id.data);
   if (!row) return;
   await db.delete(income).where(eq(income.id, row.id));
   revalidatePath("/budget");
@@ -129,8 +126,8 @@ export async function addBudgetItem(
   const user = await requireUser();
   const parsed = z
     .object({
-      periodId: z.string().min(1),
-      name: z.string().trim().min(1, "Name the category").max(60),
+      periodId: idSchema,
+      name: textSchema(60, "Name the category"),
       plannedAmount: amountSchema,
     })
     .safeParse({
@@ -163,8 +160,8 @@ export async function updateBudgetItem(
   const user = await requireUser();
   const parsed = z
     .object({
-      id: z.string().min(1),
-      name: z.string().trim().min(1).max(60),
+      id: idSchema,
+      name: textSchema(60, "Name the category"),
       plannedAmount: amountSchema,
     })
     .safeParse({
@@ -188,8 +185,9 @@ export async function updateBudgetItem(
 
 export async function deleteBudgetItem(formData: FormData) {
   const user = await requireUser();
-  const id = z.string().min(1).parse(formData.get("id"));
-  const row = await getOwnedItem(user.householdId, id);
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return;
+  const row = await getOwnedItem(user.householdId, id.data);
   if (!row) return;
   // Detach transactions before deleting so no FK references dangle.
   await db

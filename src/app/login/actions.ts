@@ -17,6 +17,7 @@ import {
   OTP_TTL_MS,
 } from "@/lib/otp";
 import { SESSION_COOKIE, SESSION_MAX_AGE, signSession } from "@/lib/session";
+import { emailSchema } from "@/lib/validation";
 
 export type LoginState = { error?: string; sent?: boolean; devCode?: string };
 
@@ -25,7 +26,6 @@ const devCode = (code: string) =>
     ? code
     : undefined;
 
-const emailSchema = z.email().transform((v) => v.toLowerCase());
 const codeSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
 
 export async function requestOtp(

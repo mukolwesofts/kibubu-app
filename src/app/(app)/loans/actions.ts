@@ -6,7 +6,13 @@ import { z } from "zod";
 import { db } from "@/db";
 import { loanPayments, loans } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { todayNairobi } from "@/lib/dates";
+import {
+  amountSchema,
+  entryDateSchema,
+  idSchema,
+  noteSchema,
+  textSchema,
+} from "@/lib/validation";
 
 export type LoanState = { error?: string };
 
@@ -22,12 +28,9 @@ export async function addLoan(
   const user = await requireUser();
   const parsed = z
     .object({
-      name: z.string().trim().min(1, "Name the loan").max(60),
-      lender: z.string().trim().min(1, "Who's the lender?").max(80),
-      startingBalance: z.coerce
-        .number()
-        .int("Whole shillings only")
-        .positive("Amount must be more than 0"),
+      name: textSchema(60, "Name the loan"),
+      lender: textSchema(80, "Who's the lender?"),
+      startingBalance: amountSchema,
     })
     .safeParse({
       name: formData.get("name"),
@@ -51,21 +54,10 @@ export async function addPayment(
   const user = await requireUser();
   const parsed = z
     .object({
-      loanId: z.string().min(1),
-      amount: z.coerce
-        .number()
-        .int("Whole shillings only")
-        .positive("Amount must be more than 0"),
-      note: z
-        .string()
-        .trim()
-        .max(140)
-        .optional()
-        .transform((v) => (v ? v : null)),
-      date: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
-        .refine((d) => d <= todayNairobi(), "Date can't be in the future"),
+      loanId: idSchema,
+      amount: amountSchema,
+      note: noteSchema,
+      date: entryDateSchema,
     })
     .safeParse({
       loanId: formData.get("loanId"),

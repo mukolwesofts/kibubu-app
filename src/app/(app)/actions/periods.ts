@@ -1,17 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { db } from "@/db";
 import { budgetItems, periods } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/lib/auth";
 import { addDays, monthLabel } from "@/lib/dates";
 import { getActivePeriod } from "@/lib/periods";
-
-const dateSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date");
+import { dateOnlySchema } from "@/lib/validation";
 
 export type PeriodState = { error?: string };
 
@@ -25,7 +21,7 @@ export async function startNewPeriod(
   formData: FormData,
 ): Promise<PeriodState> {
   const user = await requireUser();
-  const parsed = dateSchema.safeParse(formData.get("startDate"));
+  const parsed = dateOnlySchema.safeParse(formData.get("startDate"));
   if (!parsed.success) return { error: "Pick a start date" };
   const startDate = parsed.data;
 

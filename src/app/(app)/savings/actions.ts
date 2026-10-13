@@ -6,15 +6,16 @@ import { z } from "zod";
 import { db } from "@/db";
 import { savingsEntries, savingsGoals } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { todayNairobi } from "@/lib/dates";
 import { goalBalanceAt } from "@/lib/savings";
+import {
+  amountSchema,
+  entryDateSchema,
+  idSchema,
+  noteSchema,
+  textSchema,
+} from "@/lib/validation";
 
 export type SavingsState = { error?: string };
-
-const amountSchema = z.coerce
-  .number()
-  .int("Whole shillings only")
-  .positive("Amount must be more than 0");
 
 async function getOwnedGoal(householdId: string, goalId: string) {
   const goal = await db.query.savingsGoals.findFirst({
@@ -30,11 +31,8 @@ export async function addGoal(
   const user = await requireUser();
   const parsed = z
     .object({
-      name: z.string().trim().min(1, "Name the goal").max(60),
-      target: z.coerce
-        .number()
-        .int()
-        .positive()
+      name: textSchema(60, "Name the goal"),
+      target: amountSchema
         .optional()
         .or(z.literal("").transform(() => undefined)),
     })
@@ -60,19 +58,11 @@ export async function addEntry(
   const user = await requireUser();
   const parsed = z
     .object({
-      goalId: z.string().min(1),
+      goalId: idSchema,
       type: z.enum(["deposit", "withdrawal"]),
       amount: amountSchema,
-      note: z
-        .string()
-        .trim()
-        .max(140)
-        .optional()
-        .transform((v) => (v ? v : null)),
-      date: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
-        .refine((d) => d <= todayNairobi(), "Date can't be in the future"),
+      note: noteSchema,
+      date: entryDateSchema,
     })
     .safeParse({
       goalId: formData.get("goalId"),
