@@ -46,15 +46,20 @@ export async function requestOtp(
   }
 
   const code = generateOtp();
-  await db.insert(otpCodes).values({
-    email,
-    codeHash: hashOtp(email, code),
-    expiresAt: new Date(Date.now() + OTP_TTL_MS),
-  });
+  const row = await db
+    .insert(otpCodes)
+    .values({
+      email,
+      codeHash: hashOtp(email, code),
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+    })
+    .returning({ id: otpCodes.id });
 
   try {
     await sendOtpEmail(email, code);
   } catch {
+    // Roll back the insert so a failed send doesn't consume the rate limit.
+    await db.delete(otpCodes).where(eq(otpCodes.id, row[0].id));
     return { error: "Couldn't send the email. Try again in a moment." };
   }
   return { sent: true };

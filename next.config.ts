@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // App is fully dynamic (auth-gated); Cache Components/PPR adds no value here.
+  cacheComponents: false,
   turbopack: {
     rules: {
       "*.css": {

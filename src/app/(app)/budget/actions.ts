@@ -59,9 +59,11 @@ export async function addIncome(
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message };
   }
-  await requireOpenPeriod(user.householdId, parsed.data.periodId).catch(() => {
-    throw new Error("Period not found or closed");
-  });
+  const period = await requireOpenPeriod(
+    user.householdId,
+    parsed.data.periodId,
+  ).catch(() => null);
+  if (!period) return { error: "Period not found or closed" };
   await db.insert(income).values({ ...parsed.data, userId: user.id });
   revalidatePath("/budget");
   revalidatePath("/home");
@@ -134,9 +136,11 @@ export async function addBudgetItem(
     });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  await requireOpenPeriod(user.householdId, parsed.data.periodId).catch(() => {
-    throw new Error("Period not found or closed");
-  });
+  const period = await requireOpenPeriod(
+    user.householdId,
+    parsed.data.periodId,
+  ).catch(() => null);
+  if (!period) return { error: "Period not found or closed" };
   const existing = await db.query.budgetItems.findMany({
     where: eq(budgetItems.periodId, parsed.data.periodId),
     orderBy: asc(budgetItems.sort),

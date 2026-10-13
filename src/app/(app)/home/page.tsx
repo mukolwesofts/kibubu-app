@@ -39,7 +39,7 @@ export default async function HomePage({
     const active = allPeriods.find((p) => p.endDate === null) ?? null;
 
     const period = params.period
-        ? await getPeriod(user.householdId, params.period)
+        ? ((await getPeriod(user.householdId, params.period)) ?? active)
         : active;
     const today = todayNairobi();
 
