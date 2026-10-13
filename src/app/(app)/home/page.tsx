@@ -3,7 +3,7 @@ import Link from "next/link";
 import { db } from "@/db";
 import { budgetItems, income, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
-import { formatDate, todayNairobi } from "@/lib/dates";
+import { addDays, formatDate, todayNairobi } from "@/lib/dates";
 import { formatKES } from "@/lib/money";
 import { getAllPeriods, getPeriod } from "@/lib/periods";
 import {
@@ -11,7 +11,7 @@ import {
     periodEndForDisplay,
     type PeriodStatus,
 } from "@/lib/stats";
-import { NewPeriodForm } from "@/components/new-period-form";
+import { NewPeriodButton, NewPeriodForm } from "@/components/new-period-form";
 import { QuickAddSheet } from "../spend/spend-ui";
 
 const pillStyles: Record<PeriodStatus, string> = {
@@ -31,7 +31,7 @@ const pillLabels: Record<PeriodStatus, string> = {
 export default async function HomePage({
     searchParams,
 }: {
-    searchParams: Promise<{ period?: string; new?: string }>;
+    searchParams: Promise<{ period?: string }>;
 }) {
     const user = await requireUser();
     const params = await searchParams;
@@ -85,18 +85,11 @@ export default async function HomePage({
                         {p.label}
                     </Link>
                 ))}
-                <Link
-                    href="/home?new=1"
-                    scroll={false}
-                    className="shrink-0 rounded-full border border-dashed border-muted px-3.5 py-1.5 text-xs font-semibold text-muted"
-                >
-                    + New period
-                </Link>
+                <NewPeriodButton
+                    defaultDate={today}
+                    min={active ? addDays(active.startDate, 1) : undefined}
+                />
             </div>
-
-            {params.new === "1" && (
-                <NewPeriodForm defaultDate={today} first={!active} />
-            )}
 
             {/* Hero */}
             <section className="rounded-2xl border border-mist bg-white p-5">
