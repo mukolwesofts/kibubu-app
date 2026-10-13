@@ -6,11 +6,15 @@ import { z } from "zod";
 import { db } from "@/db";
 import { budgetItems, income } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { todayNairobi } from "@/lib/dates";
 import { requireOpenPeriod } from "@/lib/periods";
 
 export type BudgetState = { error?: string };
 
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date");
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
+  .refine((d) => d <= todayNairobi(), "Date can't be in the future");
 const amountSchema = z.coerce
   .number()
   .int("Whole shillings only")

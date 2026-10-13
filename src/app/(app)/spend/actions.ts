@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { budgetItems, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { todayNairobi } from "@/lib/dates";
 import { requireOpenPeriod } from "@/lib/periods";
 
 export type SpendState = { error?: string };
@@ -25,7 +26,10 @@ const txSchema = z.object({
     .max(140)
     .optional()
     .transform((v) => (v ? v : null)),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date"),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
+    .refine((d) => d <= todayNairobi(), "Date can't be in the future"),
 });
 
 /** Confirm a budget item belongs to the given period (or null). */

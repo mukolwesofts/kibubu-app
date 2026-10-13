@@ -115,6 +115,7 @@ function EntryForm({
                 name="date"
                 type="date"
                 required
+                max={today}
                 defaultValue={today}
                 className={inputCls}
             />

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { loanPayments, loans } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { todayNairobi } from "@/lib/dates";
 
 export type LoanState = { error?: string };
 
@@ -61,7 +62,10 @@ export async function addPayment(
         .max(140)
         .optional()
         .transform((v) => (v ? v : null)),
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date"),
+      date: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date")
+        .refine((d) => d <= todayNairobi(), "Date can't be in the future"),
     })
     .safeParse({
       loanId: formData.get("loanId"),

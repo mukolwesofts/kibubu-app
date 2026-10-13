@@ -111,6 +111,7 @@ export function AddPaymentButton({
                         name="date"
                         type="date"
                         required
+                        max={today}
                         defaultValue={today}
                         className={inputCls}
                     />

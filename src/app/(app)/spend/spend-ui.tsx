@@ -61,6 +61,7 @@ function Fields({
                 name="date"
                 type="date"
                 required
+                max={today}
                 defaultValue={tx?.date ?? today}
                 className={inputCls}
             />

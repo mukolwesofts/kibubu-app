@@ -47,6 +47,7 @@ function IncomeFields({ entry, today }: { entry?: Income; today: string }) {
                 name="date"
                 type="date"
                 required
+                max={today}
                 defaultValue={entry?.date ?? today}
                 className={inputCls}
             />
