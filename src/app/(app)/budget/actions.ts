@@ -4,7 +4,7 @@ import { asc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
-import { budgetItems, income } from "@/db/schema";
+import { budgetItems, income, transactions } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { todayNairobi } from "@/lib/dates";
 import { requireOpenPeriod } from "@/lib/periods";
@@ -191,6 +191,11 @@ export async function deleteBudgetItem(formData: FormData) {
   const id = z.string().min(1).parse(formData.get("id"));
   const row = await getOwnedItem(user.householdId, id);
   if (!row) return;
+  // Detach transactions before deleting so no FK references dangle.
+  await db
+    .update(transactions)
+    .set({ budgetItemId: null })
+    .where(eq(transactions.budgetItemId, row.id));
   await db.delete(budgetItems).where(eq(budgetItems.id, row.id));
   revalidatePath("/budget");
   revalidatePath("/home");
