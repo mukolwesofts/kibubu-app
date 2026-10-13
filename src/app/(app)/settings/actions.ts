@@ -8,6 +8,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { invites, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { sendInviteEmail } from "@/lib/email";
 import { SESSION_COOKIE } from "@/lib/session";
 import { emailSchema, idSchema } from "@/lib/validation";
 
@@ -40,6 +41,11 @@ export async function inviteByEmail(
   if (existingInvite) return { error: "They've already been invited" };
 
   await db.insert(invites).values({ householdId: user.householdId, email });
+  try {
+    await sendInviteEmail(email, user.name, user.email);
+  } catch {
+    return { sent: true, error: "Invited, but the invite email failed to send" };
+  }
   revalidatePath("/settings");
   return { sent: true };
 }
