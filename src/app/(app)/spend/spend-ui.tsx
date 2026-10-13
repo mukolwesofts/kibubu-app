@@ -52,12 +52,7 @@ function Fields({
                 ))}
             </select>
             <p className="-mt-1 text-xs text-muted">
-                <Link
-                    href="/budget"
-                    className="font-semibold text-navy underline-offset-2 hover:underline"
-                >
-                    Add categories on the Budget tab
-                </Link>
+                Add categories on the Budget tab
             </p>
             <input
                 name="note"
